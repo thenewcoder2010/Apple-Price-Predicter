@@ -34,57 +34,14 @@ training_df.head(200)
 print('Total number of rows: {0}\n\n'.format(len(training_df.index)))
 training_df.describe(include='all')
 
-max_fare = training_df['FARE'].max()
-print("What is the maximum fare? \t\t\t\tAnswer: ${fare:.2f}".format(fare = max_fare))
+max_open = training_df['Open'].max()
+print("What is the highest open? \t\t\t\tAnswer: ${fare:.2f}".format(fare = max_open))
 
-# What is the mean distance across all trips?
-mean_distance = training_df['TRIP_MILES'].mean()
-print("What is the mean distance across all trips? \t\tAnswer: {mean:.4f} miles".format(mean = mean_distance))
-
-# How many cab companies are in the dataset?
-num_unique_companies =  training_df['COMPANY'].nunique()
-print("How many cab companies are in the dataset? \t\tAnswer: {number}".format(number = num_unique_companies))
-
-# What is the most frequent payment type?
-most_freq_payment_type = training_df['PAYMENT_TYPE'].value_counts().idxmax()
-print("What is the most frequent payment type? \t\tAnswer: {type}".format(type = most_freq_payment_type))
-
-# Are any features missing data?
 missing_values = training_df.isnull().sum().sum()
 print("Are any features missing data? \t\t\t\tAnswer:", "No" if missing_values == 0 else "Yes")
 
-
-#@title Code - View correlation matrix
-training_df.corr(numeric_only = True)
-
-#@title Double-click to view answers about the correlation matrix
-
-# Which feature correlates most strongly to the label FARE?
-# ---------------------------------------------------------
-answer = '''
-The feature with the strongest correlation to the FARE is TRIP_MILES.
-As you might expect, TRIP_MILES looks like a good feature to start with to train
-the model. Also, notice that the feature TRIP_SECONDS has a strong correlation
-with fare too.
-'''
-print(answer)
-
-
-# Which feature correlates least strongly to the label FARE?
-# -----------------------------------------------------------
-answer = '''The feature with the weakest correlation to the FARE is TIP_RATE.'''
-print(answer)
-
-"""## Visualize relationships in dataset
-
-Sometimes it is helpful to visualize relationships between features in a dataset; one way to do this is with a pair plot. A **pair plot** generates a grid of pairwise plots to visualize the relationship of each feature with all other features all in one place.
-
-**Instructions**
-1. Run the **View pair plot** code cell.
-"""
-
 #@title Code - View pairplot
-sns.pairplot(training_df, x_vars=["FARE", "TRIP_MILES", "TRIP_SECONDS"], y_vars=["FARE", "TRIP_MILES", "TRIP_SECONDS"])
+sns.pairplot(training_df, x_vars=['Date','Close/Last', 'Open'], y_vars=['Date','Close/Last', 'Open'])
 
 
 #@title Define plotting functions
@@ -238,6 +195,7 @@ def run_experiment(df, feature_names, label_name, learning_rate, epochs, batch_s
 
     num_features = len(feature_names)
 
+    print(f"feature_names: {feature_names}")
     features = df.loc[:, feature_names].values
     label = df[label_name].values
 
@@ -260,8 +218,8 @@ epochs = 20
 batch_size = 50
 
 # Specify the feature and the label.
-features = ['TRIP_MILES']
-label = 'FARE'
+features = ['Date']
+label = 'Close/Last'
 
 model_1 = run_experiment(training_df, features, label, learning_rate, epochs, batch_size)
 
@@ -270,12 +228,12 @@ model_1 = run_experiment(training_df, features, label, learning_rate, epochs, ba
 # The following variables are the hyperparameters.
 # TODO - Adjust these hyperparameters to see how they impact a training run.
 learning_rate = 0.001
-epochs = 20
+epochs = 100
 batch_size = 50
 
 # Specify the feature and the label.
-features = ['TRIP_MILES']
-label = 'FARE'
+features = ['Date']
+label = 'Close/Last'
 
 model_1 = run_experiment(training_df, features, label, learning_rate, epochs, batch_size)
 
@@ -283,13 +241,13 @@ model_1 = run_experiment(training_df, features, label, learning_rate, epochs, ba
 
 # The following variables are the hyperparameters.
 learning_rate = 0.001
-epochs = 20
+epochs = 1000
 batch_size = 50
 
-training_df.loc[:, 'TRIP_MINUTES'] = training_df['TRIP_SECONDS']/60
+# training_df.loc[:, 'TRIP_MINUTES'] = training_df['TRIP_SECONDS']/60
 
-features = ['TRIP_MILES', 'TRIP_MINUTES']
-label = 'FARE'
+features = ['Date', 'Open']
+label = 'Close/Last'
 
 model_2 = run_experiment(training_df, features, label, learning_rate, epochs, batch_size)
 
@@ -306,13 +264,13 @@ def predict_fare(model, df, features, label, batch_size=50):
     batch = build_batch(df, batch_size)
     predicted_values = model.predict_on_batch(x=batch.loc[:, features].values)
 
-    data = {"PREDICTED_FARE": [], "OBSERVED_FARE": [], "L1_LOSS": [],
+    data = {"Predicted Price": [], "Actual Price": [], "L1_LOSS": [],
           features[0]: [], features[1]: []}
     for i in range(batch_size):
         predicted = predicted_values[i][0]
         observed = batch.at[i, label]
-        data["PREDICTED_FARE"].append(format_currency(predicted))
-        data["OBSERVED_FARE"].append(format_currency(observed))
+        data["Predicted Price"].append(format_currency(predicted))
+        data["Actual Price"].append(format_currency(observed))
         data["L1_LOSS"].append(format_currency(abs(observed - predicted)))
         data[features[0]].append(batch.at[i, features[0]])
         data[features[1]].append("{:.2f}".format(batch.at[i, features[1]]))
